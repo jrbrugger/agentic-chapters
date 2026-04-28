@@ -1,0 +1,8 @@
+
+## Agentic chapters installed
+
+This project has the following chapters of specialist agents under `.claude/agents/`:
+
+<!-- chapter list — appended by ai-agents-architect when new chapters are minted -->
+
+When a task matches a chapter specialist's description (see each chapter's `CHAPTER.md`), delegate via the `Agent` tool with the appropriate `subagent_type` rather than handling inline. Use the `agentic-chapters:agent-orchestrator` when a task spans multiple specialists or you're unsure who to route to. Use `agentic-chapters:multi-agent-manager` to audit a chapter's health.

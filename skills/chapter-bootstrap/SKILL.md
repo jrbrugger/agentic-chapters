@@ -1,0 +1,64 @@
+---
+name: chapter-bootstrap
+description: Recipe the ai-agents-architect follows to stand up a new chapter. Lists the survey checklist, the per-specialist fields, the files to write, and the report shape. Invoke when designing any new agentic chapter.
+---
+
+# Chapter bootstrap recipe
+
+When the architect creates a new chapter, follow these steps in order. Every chapter has the same shape so the orchestrator and manager can operate on any of them.
+
+## 1. Survey the project (read in parallel)
+
+In a single message with multiple Read calls:
+- `CLAUDE.md`, `AGENTS.md`, `README.md`
+- Package manifests: `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `Gemfile`
+- Top-level directory tree, one level deep (`Glob` `*` with no recursion)
+- `docs/` table of contents if present
+
+This survey determines the roster. Don't skip it — generic chapters that ignore the project produce generic agents that the orchestrator can't route effectively.
+
+## 2. Identify work areas for the named discipline
+
+For *this specific* project. Examples for engineering on a Next.js + Supabase project:
+- Backend / API (Server Actions, Route Handlers)
+- Frontend / UI (App Router, Server vs. Client components)
+- Database (Supabase, RLS, migrations)
+- Auth & security (Supabase Auth, multi-tenancy)
+- Testing
+- Performance / caching
+- Payments / integrations (Stripe)
+
+For a Rust CLI, it would look completely different. Adapt to what's actually there.
+
+## 3. Map work areas to specialists
+
+One specialist per work area, usually. Combine where the project is too small to justify two distinct ones. Don't split where a single specialist handles a coherent surface (don't separate "API design" from "API implementation" — same person).
+
+## 4. For each specialist, decide
+
+```yaml
+name: <discipline>-<role>          # kebab-case, namespaced
+description: <action-oriented>     # this is what the orchestrator routes on
+model: haiku | sonnet | opus
+tools: <minimum set>
+system_prompt:
+  - mission (one sentence)
+  - project docs to load by reference
+  - invariants (verbatim from project CLAUDE.md)
+  - skill-selection-at-runtime instruction
+  - scope boundaries (what to handle, what to return to orchestrator)
+```
+
+## 5. Write files
+
+- `.claude/agents/<discipline>/<name>.md` — one per specialist, using `templates/chapter-agent.template.md` as the starting point
+- `.claude/agents/<discipline>/CHAPTER.md` — roster (table of name + description + model + invocation example)
+- Append delegation reminder to project `CLAUDE.md` (use `templates/chapter-claude.md.fragment`)
+
+## 6. Report back
+
+Keep it tight:
+- Roster table
+- Model distribution (e.g. "1 Opus, 4 Sonnet, 2 Haiku")
+- One-line example invocation per agent
+- Anything notable about the project survey that shaped the roster
