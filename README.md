@@ -1,8 +1,10 @@
 # agentic-chapters
 
-A Claude Code plugin for spinning up discipline-specific "chapters" of specialist agents.
+A Claude Code plugin for spinning up discipline-specific "chapters" of specialist agents — and optional **pipelines** the chapter runs against repeatable kinds of work.
 
-You name a discipline — engineering, marketing, research, ops, design, anything. The architect surveys your project, decides which specialists are needed for *this* codebase, picks the right model for each (lean: Haiku for narrow lookup/check work, Sonnet for reasoning, Opus only for top-level design), and writes each agent file into your project. A runtime orchestrator routes incoming tasks across the chapter; a tuning manager keeps the roster lean over time.
+You name a discipline (engineering, marketing, research, ops, design, security, anything). The architect surveys your project, decides which specialists are needed for *this* codebase, picks the right model for each (lean: Haiku for narrow lookup/check work, Sonnet for reasoning, Opus only for top-level design), and writes each agent file into your project. If you ask for one, the architect also mints a **pipeline** — a named, phase-structured workflow with document handoffs, exit criteria, iteration bounds, severity-tiered push-back, and human gates — modeled after [Kaelig's design-system component pipeline](https://www.kaelig.fr/design-system-components-with-ai-agent-teams/) but generalized to any discipline.
+
+At runtime, an orchestrator routes ad-hoc tasks across the chapter or executes named pipelines end-to-end; a tuning manager keeps both the roster and the pipelines lean over time.
 
 ## What's in the box
 
@@ -12,7 +14,13 @@ You name a discipline — engineering, marketing, research, ops, design, anythin
 | `agent-orchestrator` | sonnet | Routes tasks at runtime — fans out parallel, sequences dependencies, synthesizes |
 | `multi-agent-manager` | sonnet | Audits an existing chapter and tunes it — overlap, dead weight, model mismatch, prompt drift |
 
-Plus three slash commands (namespaced): `/agentic-chapters:new-chapter`, `/agentic-chapters:chapter-route`, `/agentic-chapters:chapter-tune`.
+Plus six slash commands (namespaced):
+- `/agentic-chapters:new-chapter` — mint a chapter (and optional pipelines).
+- `/agentic-chapters:chapter-route` — route an ad-hoc task to the chapter.
+- `/agentic-chapters:chapter-tune` — audit the chapter (roster + pipelines).
+- `/agentic-chapters:run-pipeline` — execute a named pipeline end-to-end.
+- `/agentic-chapters:pipeline-status` — inspect a running or completed pipeline run.
+- `/agentic-chapters:pipeline-resume` — resume a halted pipeline run.
 
 ## Install
 
@@ -62,7 +70,67 @@ The orchestrator decomposes the task, fans out to relevant specialists in parall
 /agentic-chapters:chapter-tune engineering
 ```
 
-The manager audits the chapter — overlapping descriptions, agents never invoked, oversized models, drifted prompts, over-broad tool permissions — proposes changes, applies on approval.
+The manager audits the chapter — overlapping descriptions, agents never invoked, oversized models, drifted prompts, over-broad tool permissions, plus pipeline-level findings (phase bloat, dead phases, unbounded loops, rubber-stamped gates) — proposes changes, applies on approval.
+
+## Pipelines
+
+A **pipeline** is a named, phase-structured workflow within a chapter. Where the chapter is the *team*, the pipeline is the *playbook* the team runs against a specific kind of work. Pipelines are optional and additive — a chapter can have zero, one, or many.
+
+### Mint a pipeline alongside a chapter
+
+```
+/agentic-chapters:new-chapter engineering "with a feature-implement pipeline"
+```
+
+The architect designs the roster (as before) and also writes `.claude/agents/engineering/pipelines/engineering-feature-implement.md` following the universal pipeline schema.
+
+### Run a pipeline
+
+```
+/agentic-chapters:run-pipeline engineering engineering-feature-implement "add a /healthz endpoint"
+```
+
+The orchestrator walks phases in order, dispatches specialists per phase (parallel or sequential), writes per-specialist handoff artifacts to `.claude/pipeline-runs/<run-id>/`, enforces exit criteria, respects iteration loop caps, and surfaces any `[BLOCKING]` issues to you as gates.
+
+Add `--dry-run` to see the plan without invoking specialists:
+```
+/agentic-chapters:run-pipeline engineering engineering-feature-implement "add /healthz" --dry-run
+```
+
+### Inspect or resume a run
+
+```
+/agentic-chapters:pipeline-status                     # list recent runs
+/agentic-chapters:pipeline-status 20260429-143022-feature-implement
+/agentic-chapters:pipeline-resume 20260429-143022-feature-implement
+```
+
+### The universal pipeline schema
+
+Every pipeline file has the same shape (full spec in the `agentic-chapters:pipeline-design` skill). The seven load-bearing pieces:
+
+1. **Phases** — ordered list, each with observable exit criteria.
+2. **Specialists per phase** — referenced by name; same chapter (`engineering-spec-author`) or cross-chapter (`marketing/copy-reviewer`); parallel or sequential.
+3. **Document handoffs** — per-specialist artifact files, no clobbering between specialists in the same phase.
+4. **Iteration loops** — soft cap that escalates to a `[BLOCKING]` gate (never silent abort).
+5. **Gates** — human checkpoints with explicit options menus.
+6. **Rules** — mandatory (CR-*) vs advisory (AR-*).
+7. **Failure modes** — what happens when an iteration cap is hit, a specialist returns no artifact, a gate is rejected.
+
+### Cross-discipline applicability
+
+Same grammar, different cast:
+
+| Discipline | Example pipeline | Phases |
+|---|---|---|
+| Engineering | `feature-implement` | Spec → Implement → Test → Review |
+| Frontend / Design system | `component-build` | Understand (Figma, lib, arch) → Build (code, a11y, stories) → Verify (visual, quality) |
+| Marketing | `launch-campaign` | Research → Build (copy, assets, channels) → Verify (review, A/B plan) |
+| Business validation | `validate-idea` | Research → Build (unit econ, risks) → Verify (go/no-go gate) |
+| DevOps | `incident-response` | Detect → Contain → Diagnose → Remediate → Postmortem |
+| Security | `threat-model-feature` | Inventory → STRIDE → Mitigations → Review |
+
+The plugin doesn't ship any starter pipelines — that would hardcode disciplines, which contradicts the meta-design. Pipelines are minted into your project by the architect.
 
 ## Design principles
 
@@ -82,19 +150,23 @@ The manager audits the chapter — overlapping descriptions, agents never invoke
 agentic-chapters/
 ├── .claude-plugin/plugin.json
 ├── agents/
-│   ├── ai-agents-architect.md         # opus — designs chapters
-│   ├── agent-orchestrator.md          # sonnet — routes tasks
-│   └── multi-agent-manager.md         # sonnet — tunes chapters
+│   ├── ai-agents-architect.md         # opus — designs chapters and pipelines
+│   ├── agent-orchestrator.md          # sonnet — routes tasks; runs pipelines
+│   └── multi-agent-manager.md         # sonnet — audits chapters and pipelines
 ├── skills/
-│   └── chapter-bootstrap/SKILL.md     # bootstrap recipe (inlined templates)
+│   ├── chapter-bootstrap/SKILL.md     # recipe for chapter scaffolding
+│   └── pipeline-design/SKILL.md       # recipe + schema for pipelines
 ├── commands/
 │   ├── new-chapter.md                 # /agentic-chapters:new-chapter
 │   ├── chapter-route.md               # /agentic-chapters:chapter-route
-│   └── chapter-tune.md                # /agentic-chapters:chapter-tune
+│   ├── chapter-tune.md                # /agentic-chapters:chapter-tune
+│   ├── run-pipeline.md                # /agentic-chapters:run-pipeline
+│   ├── pipeline-status.md             # /agentic-chapters:pipeline-status
+│   └── pipeline-resume.md             # /agentic-chapters:pipeline-resume
 └── README.md
 ```
 
-The specialist-agent template and the consuming-project `CLAUDE.md` fragment are inlined into the architect's prompt and the bootstrap skill — no external template files to drift out of sync.
+The specialist-agent template, the pipeline file schema, and the consuming-project `CLAUDE.md` fragment are inlined into the architect's prompt and the two skills — no external template files to drift out of sync.
 
 ## License
 

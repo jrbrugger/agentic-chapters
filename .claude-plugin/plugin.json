@@ -1,6 +1,6 @@
 {
   "name": "agentic-chapters",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Discipline-agnostic agentic chapters: an architect that designs specialist agent teams, plus a runtime orchestrator and a tuning manager.",
   "author": {
     "name": "Jack Brugger"
