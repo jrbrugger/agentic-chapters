@@ -24,25 +24,26 @@ Plus six slash commands (namespaced):
 
 ## Install
 
-### From a local clone (recommended for now)
+### Via the Claude Code marketplace (recommended)
 
-Clone this repo, then load it on every Claude Code session with the `--plugin-dir` flag from any project you want to use it in:
+Run these two commands inside Claude Code:
+
+```
+/plugin marketplace add jrbrugger/agentic-chapters
+/plugin install agentic-chapters@jrbrugger
+```
+
+Install at **user scope** so the plugin is available across all your projects. After install, run `/reload-plugins` if Claude Code doesn't pick it up automatically.
+
+### From a local clone (alternative)
+
+Clone this repo, then load it on every Claude Code session with the `--plugin-dir` flag:
 
 ```
 git clone https://github.com/jrbrugger/agentic-chapters.git ~/Documents/Apps/agentic-chapters
 cd /path/to/some/project
 claude --plugin-dir ~/Documents/Apps/agentic-chapters
 ```
-
-### Via a Claude Code marketplace
-
-If you've added this repo to a marketplace (`/plugin marketplace add <url>`), then:
-
-```
-/plugin install agentic-chapters
-```
-
-After install, run `/reload-plugins` if Claude Code doesn't pick it up automatically.
 
 ## Usage
 
