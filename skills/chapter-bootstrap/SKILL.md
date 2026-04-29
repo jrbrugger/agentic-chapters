@@ -97,14 +97,14 @@ Then write `.claude/agents/<discipline>/CHAPTER.md` — a roster table with one 
 
 Finally, append the delegation reminder to the project's `CLAUDE.md` using the exact block printed in `ai-agents-architect.md` step 6.
 
-## 6. Mint pipelines (optional, if requested)
+## 6. Mint playbooks (optional, if requested)
 
-If the user asked for one or more pipelines alongside the chapter (e.g. "engineering with a feature-implement pipeline"), follow the `agentic-chapters:pipeline-design` skill for each pipeline. That skill defines the schema (phases, exit criteria, document handoffs, gates, iteration loops with caps, rules CR-*/AR-*, failure modes, push-back severity) and the design heuristics.
+If the user asked for one or more playbooks alongside the chapter (e.g. "engineering with a feature-implement playbook"), follow the `agentic-chapters:playbook-design` skill for each playbook. That skill defines the schema (phases, exit criteria, document handoffs, gates, iteration loops with caps, rules CR-*/AR-*, failure modes, push-back severity) and the design heuristics.
 
 Constraints:
-- Pipelines reference roster members by name. A pipeline can only reference specialists you've already minted in this chapter (or that exist in another chapter via `<chapter>/<specialist>` syntax). If a pipeline needs a specialist the roster doesn't have, mint that specialist first, then design the pipeline.
-- Pipeline files live at `.claude/agents/<discipline>/pipelines/<pipeline-name>.md` of the consuming project. Names are kebab-case and discipline-prefixed (e.g. `engineering-feature-implement`, `devops-incident-response`).
-- After writing each pipeline, update the chapter's `CHAPTER.md` to include a `## Pipelines` section listing the pipeline by name, with description and one-line example invocation (`/agentic-chapters:run-pipeline <discipline> <pipeline-name> "<example input>"`).
+- Playbooks reference roster members by name. A playbook can only reference specialists you've already minted in this chapter (or that exist in another chapter via `<chapter>/<specialist>` syntax). If a playbook needs a specialist the roster doesn't have, mint that specialist first, then design the playbook.
+- Playbook files live at `.claude/agents/<discipline>/playbooks/<playbook-name>.md` of the consuming project. Names are kebab-case and discipline-prefixed (e.g. `engineering-feature-implement`, `devops-incident-response`).
+- After writing each playbook, update the chapter's `CHAPTER.md` to include a `## Playbooks` section listing the playbook by name, with description and one-line example invocation (`/agentic-chapters:run-playbook <discipline> <playbook-name> "<example input>"`).
 
 Skip this step if the user only asked for a roster.
 
@@ -114,5 +114,5 @@ Keep it tight:
 - Roster table
 - Model distribution (e.g. "1 Opus, 4 Sonnet, 2 Haiku")
 - One-line example invocation per agent
-- If pipelines were minted: pipeline names, phase counts, one-line example invocations
+- If playbooks were minted: playbook names, phase counts, one-line example invocations
 - Anything notable about the project survey that shaped the roster

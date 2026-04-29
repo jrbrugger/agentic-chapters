@@ -1,10 +1,10 @@
 # agentic-chapters
 
-A Claude Code plugin for spinning up discipline-specific "chapters" of specialist agents — and optional **pipelines** the chapter runs against repeatable kinds of work.
+A Claude Code plugin for spinning up discipline-specific "chapters" of specialist agents — and optional **playbooks** the chapter runs against repeatable kinds of work.
 
-You name a discipline (engineering, marketing, research, ops, design, security, anything). The architect surveys your project, decides which specialists are needed for *this* codebase, picks the right model for each (lean: Haiku for narrow lookup/check work, Sonnet for reasoning, Opus only for top-level design), and writes each agent file into your project. If you ask for one, the architect also mints a **pipeline** — a named, phase-structured workflow with document handoffs, exit criteria, iteration bounds, severity-tiered push-back, and human gates — modeled after [Kaelig's design-system component pipeline](https://www.kaelig.fr/design-system-components-with-ai-agent-teams/) but generalized to any discipline.
+You name a discipline (engineering, marketing, research, ops, design, security, anything). The architect surveys your project, decides which specialists are needed for *this* codebase, picks the right model for each (lean: Haiku for narrow lookup/check work, Sonnet for reasoning, Opus only for top-level design), and writes each agent file into your project. If you ask for one, the architect also mints a **playbook** — a named, phase-structured workflow with document handoffs, exit criteria, iteration bounds, severity-tiered push-back, and human gates — modeled after [Kaelig's design-system component playbook](https://www.kaelig.fr/design-system-components-with-ai-agent-teams/) but generalized to any discipline.
 
-At runtime, an orchestrator routes ad-hoc tasks across the chapter or executes named pipelines end-to-end; a tuning manager keeps both the roster and the pipelines lean over time.
+At runtime, an orchestrator routes ad-hoc tasks across the chapter or executes named playbooks end-to-end; a tuning manager keeps both the roster and the playbooks lean over time.
 
 ## What's in the box
 
@@ -15,12 +15,12 @@ At runtime, an orchestrator routes ad-hoc tasks across the chapter or executes n
 | `multi-agent-manager` | sonnet | Audits an existing chapter and tunes it — overlap, dead weight, model mismatch, prompt drift |
 
 Plus six slash commands (namespaced):
-- `/agentic-chapters:new-chapter` — mint a chapter (and optional pipelines).
+- `/agentic-chapters:new-chapter` — mint a chapter (and optional playbooks).
 - `/agentic-chapters:chapter-route` — route an ad-hoc task to the chapter.
-- `/agentic-chapters:chapter-tune` — audit the chapter (roster + pipelines).
-- `/agentic-chapters:run-pipeline` — execute a named pipeline end-to-end.
-- `/agentic-chapters:pipeline-status` — inspect a running or completed pipeline run.
-- `/agentic-chapters:pipeline-resume` — resume a halted pipeline run.
+- `/agentic-chapters:chapter-tune` — audit the chapter (roster + playbooks).
+- `/agentic-chapters:run-playbook` — execute a named playbook end-to-end.
+- `/agentic-chapters:playbook-status` — inspect a running or completed playbook run.
+- `/agentic-chapters:playbook-resume` — resume a halted playbook run.
 
 ## Install
 
@@ -70,44 +70,44 @@ The orchestrator decomposes the task, fans out to relevant specialists in parall
 /agentic-chapters:chapter-tune engineering
 ```
 
-The manager audits the chapter — overlapping descriptions, agents never invoked, oversized models, drifted prompts, over-broad tool permissions, plus pipeline-level findings (phase bloat, dead phases, unbounded loops, rubber-stamped gates) — proposes changes, applies on approval.
+The manager audits the chapter — overlapping descriptions, agents never invoked, oversized models, drifted prompts, over-broad tool permissions, plus playbook-level findings (phase bloat, dead phases, unbounded loops, rubber-stamped gates) — proposes changes, applies on approval.
 
-## Pipelines
+## Playbooks
 
-A **pipeline** is a named, phase-structured workflow within a chapter. Where the chapter is the *team*, the pipeline is the *playbook* the team runs against a specific kind of work. Pipelines are optional and additive — a chapter can have zero, one, or many.
+A **playbook** is a named, phase-structured workflow within a chapter. Where the chapter is the *team*, the playbook is the *playbook* the team runs against a specific kind of work. Playbooks are optional and additive — a chapter can have zero, one, or many.
 
-### Mint a pipeline alongside a chapter
-
-```
-/agentic-chapters:new-chapter engineering "with a feature-implement pipeline"
-```
-
-The architect designs the roster (as before) and also writes `.claude/agents/engineering/pipelines/engineering-feature-implement.md` following the universal pipeline schema.
-
-### Run a pipeline
+### Mint a playbook alongside a chapter
 
 ```
-/agentic-chapters:run-pipeline engineering engineering-feature-implement "add a /healthz endpoint"
+/agentic-chapters:new-chapter engineering "with a feature-implement playbook"
 ```
 
-The orchestrator walks phases in order, dispatches specialists per phase (parallel or sequential), writes per-specialist handoff artifacts to `.claude/pipeline-runs/<run-id>/`, enforces exit criteria, respects iteration loop caps, and surfaces any `[BLOCKING]` issues to you as gates.
+The architect designs the roster (as before) and also writes `.claude/agents/engineering/playbooks/engineering-feature-implement.md` following the universal playbook schema.
+
+### Run a playbook
+
+```
+/agentic-chapters:run-playbook engineering engineering-feature-implement "add a /healthz endpoint"
+```
+
+The orchestrator walks phases in order, dispatches specialists per phase (parallel or sequential), writes per-specialist handoff artifacts to `.claude/playbook-runs/<run-id>/`, enforces exit criteria, respects iteration loop caps, and surfaces any `[BLOCKING]` issues to you as gates.
 
 Add `--dry-run` to see the plan without invoking specialists:
 ```
-/agentic-chapters:run-pipeline engineering engineering-feature-implement "add /healthz" --dry-run
+/agentic-chapters:run-playbook engineering engineering-feature-implement "add /healthz" --dry-run
 ```
 
 ### Inspect or resume a run
 
 ```
-/agentic-chapters:pipeline-status                     # list recent runs
-/agentic-chapters:pipeline-status 20260429-143022-feature-implement
-/agentic-chapters:pipeline-resume 20260429-143022-feature-implement
+/agentic-chapters:playbook-status                     # list recent runs
+/agentic-chapters:playbook-status 20260429-143022-feature-implement
+/agentic-chapters:playbook-resume 20260429-143022-feature-implement
 ```
 
-### The universal pipeline schema
+### The universal playbook schema
 
-Every pipeline file has the same shape (full spec in the `agentic-chapters:pipeline-design` skill). The seven load-bearing pieces:
+Every playbook file has the same shape (full spec in the `agentic-chapters:playbook-design` skill). The seven load-bearing pieces:
 
 1. **Phases** — ordered list, each with observable exit criteria.
 2. **Specialists per phase** — referenced by name; same chapter (`engineering-spec-author`) or cross-chapter (`marketing/copy-reviewer`); parallel or sequential.
@@ -121,7 +121,7 @@ Every pipeline file has the same shape (full spec in the `agentic-chapters:pipel
 
 Same grammar, different cast:
 
-| Discipline | Example pipeline | Phases |
+| Discipline | Example playbook | Phases |
 |---|---|---|
 | Engineering | `feature-implement` | Spec → Implement → Test → Review |
 | Frontend / Design system | `component-build` | Understand (Figma, lib, arch) → Build (code, a11y, stories) → Verify (visual, quality) |
@@ -130,11 +130,11 @@ Same grammar, different cast:
 | DevOps | `incident-response` | Detect → Contain → Diagnose → Remediate → Postmortem |
 | Security | `threat-model-feature` | Inventory → STRIDE → Mitigations → Review |
 
-The plugin doesn't ship any starter pipelines — that would hardcode disciplines, which contradicts the meta-design. Pipelines are minted into your project by the architect.
+The plugin doesn't ship any starter playbooks — that would hardcode disciplines, which contradicts the meta-design. Playbooks are minted into your project by the architect.
 
 ## Design principles
 
-- **Chapters live in your project, not in this plugin.** Only the three executives ship in this repo. Specialists are project-specific and get written into the consuming project's `.claude/agents/<discipline>/`. That's why the same plugin works for an engineering chapter on a Next.js app and a research chapter on a data pipeline.
+- **Chapters live in your project, not in this plugin.** Only the three executives ship in this repo. Specialists are project-specific and get written into the consuming project's `.claude/agents/<discipline>/`. That's why the same plugin works for an engineering chapter on a Next.js app and a research chapter on a data playbook.
 
 - **Skill selection is per-task, per-agent.** Specialist prompts don't hardcode skills; they pick at runtime from whatever skill library is available. As your skill ecosystem grows, agents adapt without rewrites.
 
@@ -150,23 +150,23 @@ The plugin doesn't ship any starter pipelines — that would hardcode discipline
 agentic-chapters/
 ├── .claude-plugin/plugin.json
 ├── agents/
-│   ├── ai-agents-architect.md         # opus — designs chapters and pipelines
-│   ├── agent-orchestrator.md          # sonnet — routes tasks; runs pipelines
-│   └── multi-agent-manager.md         # sonnet — audits chapters and pipelines
+│   ├── ai-agents-architect.md         # opus — designs chapters and playbooks
+│   ├── agent-orchestrator.md          # sonnet — routes tasks; runs playbooks
+│   └── multi-agent-manager.md         # sonnet — audits chapters and playbooks
 ├── skills/
 │   ├── chapter-bootstrap/SKILL.md     # recipe for chapter scaffolding
-│   └── pipeline-design/SKILL.md       # recipe + schema for pipelines
+│   └── playbook-design/SKILL.md       # recipe + schema for playbooks
 ├── commands/
 │   ├── new-chapter.md                 # /agentic-chapters:new-chapter
 │   ├── chapter-route.md               # /agentic-chapters:chapter-route
 │   ├── chapter-tune.md                # /agentic-chapters:chapter-tune
-│   ├── run-pipeline.md                # /agentic-chapters:run-pipeline
-│   ├── pipeline-status.md             # /agentic-chapters:pipeline-status
-│   └── pipeline-resume.md             # /agentic-chapters:pipeline-resume
+│   ├── run-playbook.md                # /agentic-chapters:run-playbook
+│   ├── playbook-status.md             # /agentic-chapters:playbook-status
+│   └── playbook-resume.md             # /agentic-chapters:playbook-resume
 └── README.md
 ```
 
-The specialist-agent template, the pipeline file schema, and the consuming-project `CLAUDE.md` fragment are inlined into the architect's prompt and the two skills — no external template files to drift out of sync.
+The specialist-agent template, the playbook file schema, and the consuming-project `CLAUDE.md` fragment are inlined into the architect's prompt and the two skills — no external template files to drift out of sync.
 
 ## License
 

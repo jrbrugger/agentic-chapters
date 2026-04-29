@@ -1,7 +1,7 @@
 {
   "name": "agentic-chapters",
-  "version": "0.2.0",
-  "description": "Discipline-agnostic agentic chapters: an architect that designs specialist agent teams, plus a runtime orchestrator and a tuning manager.",
+  "version": "0.3.0",
+  "description": "Discipline-agnostic agentic chapters: an architect that designs specialist agent teams plus optional named playbooks (phase-structured workflows), a runtime orchestrator that routes ad-hoc tasks or executes playbooks end-to-end, and a tuning manager that audits both rosters and playbooks.",
   "author": {
     "name": "Jack Brugger"
   },
