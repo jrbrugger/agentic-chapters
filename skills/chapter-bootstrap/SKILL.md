@@ -27,8 +27,9 @@ For *this specific* project. Examples for engineering on a Next.js + Supabase pr
 - Testing
 - Performance / caching
 - Payments / integrations (Stripe)
+- Language specialists for the dominant languages in the repo (e.g. `engineering-typescript`, `engineering-python`, `engineering-rust`) — these handle idiom-level concerns: type-system tricks, async patterns, build/lint configs, language-specific perf gotchas. Add a language specialist when the repo has non-trivial code in that language.
 
-For a Rust CLI, it would look completely different. Adapt to what's actually there.
+For a Rust CLI, it would look completely different (e.g. `engineering-rust`, `engineering-cli-ergonomics`, `engineering-cargo-deps`, `engineering-perf`). Adapt to what's actually there.
 
 ## 3. Map work areas to specialists
 
@@ -51,9 +52,50 @@ system_prompt:
 
 ## 5. Write files
 
-- `.claude/agents/<discipline>/<name>.md` — one per specialist, using `templates/chapter-agent.template.md` as the starting point
-- `.claude/agents/<discipline>/CHAPTER.md` — roster (table of name + description + model + invocation example)
-- Append delegation reminder to project `CLAUDE.md` (use `templates/chapter-claude.md.fragment`)
+Write each specialist as `.claude/agents/<discipline>/<name>.md` of the **consuming project's** working directory. Use this exact shape (no external template file required — compose it inline):
+
+```markdown
+---
+name: <discipline>-<role>
+description: <one sentence, third person, action oriented — what triggers this agent>
+model: <haiku | sonnet | opus>
+tools: <minimum comma-separated set>
+---
+
+You are the <role> specialist for the <discipline> chapter of this project.
+
+# Mission
+
+<one sentence>
+
+# Project context to load
+
+Before acting, read in parallel:
+- `CLAUDE.md`
+- <relevant project docs by path — e.g. `docs/architecture/01-database.md`>
+
+# Invariants
+
+Pulled from the project's `CLAUDE.md` — do not violate:
+- <invariant 1>
+- <invariant 2>
+
+# Skill selection
+
+Before acting, scan the skills available in your system prompt and invoke the most specific match via the Skill tool. Don't hardcode a skill list — choose per task.
+
+# Scope
+
+You handle:
+- <list>
+
+You don't handle (return to the orchestrator):
+- <list>
+```
+
+Then write `.claude/agents/<discipline>/CHAPTER.md` — a roster table with one row per specialist (name, description, model, one-line example invocation), plus a "How to invoke this chapter" section pointing to `agentic-chapters:agent-orchestrator` for routing and `agentic-chapters:multi-agent-manager` for tuning.
+
+Finally, append the delegation reminder to the project's `CLAUDE.md` using the exact block printed in `ai-agents-architect.md` step 6.
 
 ## 6. Report back
 
